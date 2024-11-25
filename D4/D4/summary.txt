@@ -1,0 +1,7 @@
+The 2008 ACM Northwestern Europe Programming Contest
+Utrecht University, The Netherlands
+Task С.
+
+Кошки и собаки - максимальное независимое множество в двудольном графе.
+
+
