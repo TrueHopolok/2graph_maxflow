@@ -59,6 +59,8 @@
   "files.associations": {
     "iostream": "cpp",
     "new": "cpp",
-    "ostream": "cpp"
+    "ostream": "cpp",
+    "compilecommand": "cpp",
+    "algorithm": "cpp"
   }
 }

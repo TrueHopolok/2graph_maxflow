@@ -1,0 +1,23 @@
+g++ knights.cpp -o a.exe
+./a.exe < knights/knights/tests/in/kni0.in > o.txt
+diff o.txt knights/knights/tests/out/kni0.out  
+./a.exe < knights/knights/tests/in/kni1.in > o.txt
+diff o.txt knights/knights/tests/out/kni1.out 
+./a.exe < knights/knights/tests/in/kni2.in > o.txt
+diff o.txt knights/knights/tests/out/kni2.out 
+./a.exe < knights/knights/tests/in/kni3.in > o.txt
+diff o.txt knights/knights/tests/out/kni3.out 
+./a.exe < knights/knights/tests/in/kni4.in > o.txt
+diff o.txt knights/knights/tests/out/kni4.out
+./a.exe < knights/knights/tests/in/kni5.in > o.txt
+diff o.txt knights/knights/tests/out/kni5.out  
+./a.exe < knights/knights/tests/in/kni6.in > o.txt
+diff o.txt knights/knights/tests/out/kni6.out 
+./a.exe < knights/knights/tests/in/kni7.in > o.txt
+diff o.txt knights/knights/tests/out/kni7.out 
+./a.exe < knights/knights/tests/in/kni8.in > o.txt
+diff o.txt knights/knights/tests/out/kni8.out 
+./a.exe < knights/knights/tests/in/kni9.in > o.txt
+diff o.txt knights/knights/tests/out/kni9.out
+./a.exe < knights/knights/tests/in/kni10.in > o.txt
+diff o.txt knights/knights/tests/out/kni10.out  
