@@ -54,11 +54,13 @@ void solve() {
 	}
 
 	int* sums = new int[nodes_amount];
-	int* parents = new int[nodes_amount];
+	pair<int, int>* parents = new pair<int, int>[nodes_amount];
 	bool* visited = new bool[nodes_amount];
 	forever {
-		for (int i = 0; i < nodes_amount; i++) sums[i] = 0, visited[i] = false;
-		
+		for (int i = 0; i < nodes_amount; i++) {
+			sums[i] = 0, visited[i] = false, parents[i] = {0, 0};
+		}
+
 		queue<pair<int, int>> visit_order;
 		visit_order.push({0, 0});
 		while (!visit_order.empty()) {
@@ -69,7 +71,7 @@ void solve() {
 			visited[cur_node] = true;
 			
 			if (cur_node != par_node) {
-				parents[cur_node] = par_node;
+				parents[cur_node] = {par_node, parents[par_node].second + 1};
 				edge* par_edge = edges[cur_node][par_node];
 				int tmp_sum = par_edge->cost;
 				if (par_edge->goal == cur_node) tmp_sum = -tmp_sum;
@@ -98,7 +100,7 @@ void solve() {
 		if (is_stale) break;
 		//border node?
 		int min_flow = -1;
-		for (int cur_node = x_node, par_node = parents[cur_node]; cur_node != 0; cur_node = par_node, par_node = parents[par_node]) {
+		for (int cur_node = x_node, par_node = parents[cur_node].first; cur_node != 0; cur_node = par_node, par_node = parents[par_node].first) {
 			if (cur_node < storages_amount) continue;
 			int cur_flow = edges[cur_node][par_node]->flow;
 			if (min_flow == -1 || min_flow < cur_flow) min_flow = cur_flow; 
