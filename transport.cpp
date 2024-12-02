@@ -16,6 +16,7 @@ struct edge {
 
 
 void solve() {
+	cout << "Begin" << endl;
 	int markets_amount, storages_amount, nodes_amount;
 	cin >> storages_amount;
 	cin >> markets_amount;
@@ -34,10 +35,12 @@ void solve() {
 	}
 
 	unordered_map<int, edge*>* edges = new unordered_map<int, edge*>[nodes_amount];
-	for (int i = 0, j = 0; i < storages_amount && j < markets_amount;) {
-		edge* tmp_edge = new edge{0, costs[i][j], j+storages_amount, false};
-		edges[i][j+storages_amount] = tmp_edge;
-		edges[j+storages_amount][i] = tmp_edge;
+	for (int i = 0; i < storages_amount; i++) {
+		for (int j = 0; j < markets_amount; j++) {
+			edge* tmp_edge = new edge{0, costs[i][j], j+storages_amount, false};
+			edges[i][j+storages_amount] = tmp_edge;
+			edges[j+storages_amount][i] = tmp_edge;
+		}
 	}
 
 	for (int i = 0, j = 0; i < storages_amount && j < markets_amount;) {
@@ -56,6 +59,7 @@ void solve() {
 	int* sums = new int[nodes_amount];
 	pair<int, int>* parents = new pair<int, int>[nodes_amount];
 	bool* visited = new bool[nodes_amount];
+	cout << "Insanity" << endl;
 	forever {
 		for (int i = 0; i < nodes_amount; i++) {
 			sums[i] = 0, visited[i] = false, parents[i] = {0, 0};
@@ -92,25 +96,90 @@ void solve() {
 		for (int i = 0; i < storages_amount; i++) {
 			for (int j = 0; j < markets_amount; j++) {
 				if (edges[i][j+storages_amount]->is_active) continue;
+				cout << costs[i][j] + sums[i] - sums[j+storages_amount] << endl;
 				if (costs[i][j] + sums[i] - sums[j+storages_amount] >= 0) continue;
 				x_node = i, y_node = j + storages_amount, is_stale = false;
 				break; 
 			}
 		}
+		cout << "LOOP" << endl;
 		if (is_stale) break;
-		//border node?
+		cout << "ok" << endl;
+
+		int zx_node = x_node;
+		while (parents[zx_node].second > parents[y_node].second) {
+			zx_node = parents[zx_node].first;
+		}
+		int zy_node = y_node;
+		while (parents[x_node].second < parents[zy_node].second) {
+			zy_node = parents[zy_node].first;
+		}
+		while (zx_node != zy_node) {
+			zx_node = parents[zx_node].first;
+			zy_node = parents[zy_node].first;
+		}
+		
 		int min_flow = -1;
-		for (int cur_node = x_node, par_node = parents[cur_node].first; cur_node != 0; cur_node = par_node, par_node = parents[par_node].first) {
+		for (int cur_node = x_node, par_node = parents[cur_node].first; cur_node != zx_node; cur_node = par_node, par_node = parents[par_node].first) {
 			if (cur_node < storages_amount) continue;
 			int cur_flow = edges[cur_node][par_node]->flow;
-			if (min_flow == -1 || min_flow < cur_flow) min_flow = cur_flow; 
+			if (min_flow == -1 || min_flow > cur_flow) min_flow = cur_flow;
 		}
-		for (int cur_node = y_node, par_node = parents[cur_node]; ;) break; //TODO
+		for (int cur_node = y_node, par_node = parents[cur_node].first; cur_node != zy_node; cur_node = par_node, par_node = parents[par_node].first) {
+			if (cur_node < storages_amount) continue;
+			int cur_flow = edges[cur_node][par_node]->flow;
+			if (min_flow > cur_flow) min_flow = cur_flow;
+		}
+
+		edge* new_edge = edges[x_node][y_node];
+		new_edge->is_active = true;
+		new_edge->flow += min_flow;
+
+		bool not_disabled = true;
+		for (int cur_node = x_node, par_node = parents[cur_node].first; cur_node != zx_node; cur_node = par_node, par_node = parents[par_node].first) {
+			if (cur_node < storages_amount) {
+				edges[cur_node][par_node]->flow += min_flow;
+				continue;
+			}
+			edge* cur_edge = edges[cur_node][par_node];
+			cur_edge->flow -= min_flow;
+			if (not_disabled && cur_edge->flow == 0) {
+				cur_edge->is_active = false;
+				not_disabled = false;
+			}
+		}
+		for (int cur_node = y_node, par_node = parents[cur_node].first; cur_node != zy_node; cur_node = par_node, par_node = parents[par_node].first) {
+			if (cur_node < storages_amount) {
+				edges[cur_node][par_node]->flow += min_flow;
+				continue;
+			}
+			edge* cur_edge = edges[cur_node][par_node];
+			cur_edge->flow -= min_flow;
+			if (not_disabled && cur_edge->flow == 0) {
+				cur_edge->is_active = false;
+				not_disabled = false;
+			}
+		}
+
+		int result = 0;
+		for (int i = 0; i < storages_amount; i++) {
+			for (int j = storages_amount; j < nodes_amount; j++) {
+				result += edges[i][j]->cost * edges[i][j]->flow;
+			}
+		}
+		cout << result << endl;
 	}
+	cout << "LOL" << endl;
+	int result = 0;
+	for (int i = 0; i < storages_amount; i++) {
+		for (int j = storages_amount; j < nodes_amount; j++) {
+			cout << i << ' ' << j-storages_amount << ' ' << edges[i][j]->flow << '\n';
+			result += edges[i][j]->cost * edges[i][j]->flow;
+		}
+	}
+	cout << result << '\n';
 	
-
-
-
+	flush(cout);
 	for (int i = 0; i < markets_amount + storages_amount; ++i) {
 		for (const pair<int, edge*> &p : edges[i]) delete p.second;
 	}
