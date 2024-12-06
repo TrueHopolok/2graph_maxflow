@@ -15,8 +15,7 @@ struct edge {
 };
 
 
-void solve() {
-	cout << "Begin" << endl;
+int solve() {
 	int markets_amount, storages_amount, nodes_amount;
 	cin >> storages_amount;
 	cin >> markets_amount;
@@ -51,16 +50,24 @@ void solve() {
 			markets[j] -= storages[i];
 			i++;
 		} else {
-			storages[i] - markets[j];
+			storages[i] -= markets[j];
 			j++;
 		}
 	}
 
+	//DEBUG-start
+	for (int i = 0; i < storages_amount; i++) {
+		for (int j = storages_amount; j < nodes_amount; j++) {
+			cout << edges[i][j]->cost << '|' << i << ' ' << j-storages_amount << ' ' << edges[i][j]->flow << endl;
+		}
+	}
+	//DEBUG-end
+
 	int* sums = new int[nodes_amount];
 	pair<int, int>* parents = new pair<int, int>[nodes_amount];
 	bool* visited = new bool[nodes_amount];
-	cout << "Insanity" << endl;
 	forever {
+		cout << endl; //DEBUG
 		for (int i = 0; i < nodes_amount; i++) {
 			sums[i] = 0, visited[i] = false, parents[i] = {0, 0};
 		}
@@ -78,33 +85,49 @@ void solve() {
 				parents[cur_node] = {par_node, parents[par_node].second + 1};
 				edge* par_edge = edges[cur_node][par_node];
 				int tmp_sum = par_edge->cost;
-				if (par_edge->goal == cur_node) tmp_sum = -tmp_sum;
+				if (par_edge->goal != cur_node) tmp_sum = -tmp_sum;
 				sums[cur_node] = sums[par_node] + tmp_sum;
 			}
 
 			for (const pair<int, edge*> &p : edges[cur_node]) {
 				int son_node = p.first;
-				if (visited[par_node]) continue;
+				if (visited[son_node]) continue;
 				edge* son_edge = p.second;
 				if (!son_edge->is_active) continue;
 				visit_order.push({son_node, cur_node});
 			}
 		}
 
+		//DEBUG-start
+		for (int i = 0; i < nodes_amount; i++) {
+			cout << sums[i] << ' ';
+		}
+		cout << endl;
+		//DEBUG-end
+
 		bool is_stale = true;
 		int x_node, y_node;
 		for (int i = 0; i < storages_amount; i++) {
 			for (int j = 0; j < markets_amount; j++) {
 				if (edges[i][j+storages_amount]->is_active) continue;
-				cout << costs[i][j] + sums[i] - sums[j+storages_amount] << endl;
+				cout << i << '+' << j << '=' << costs[i][j] + sums[i] - sums[j+storages_amount] << '(' << costs[i][j] << ")|"; //DEBUG
 				if (costs[i][j] + sums[i] - sums[j+storages_amount] >= 0) continue;
+				cout << "X";
 				x_node = i, y_node = j + storages_amount, is_stale = false;
 				break; 
 			}
+			if (!is_stale) break;
 		}
-		cout << "LOOP" << endl;
+		//DEBUG-start
+		cout << "\nparents= ";
+		for (int i = 0; i < nodes_amount; i++) cout << parents[i].first << ' ';
+		cout << endl;
+		//DEBUG-end
 		if (is_stale) break;
-		cout << "ok" << endl;
+		//DEBUG-start
+		cout << x_node << '+' << y_node-storages_amount << '=' << endl;
+		cout << costs[x_node][y_node-storages_amount] << '+' << sums[x_node] << '-' << sums[y_node]; 
+		//DEBUG-end
 
 		int zx_node = x_node;
 		while (parents[zx_node].second > parents[y_node].second) {
@@ -128,8 +151,10 @@ void solve() {
 		for (int cur_node = y_node, par_node = parents[cur_node].first; cur_node != zy_node; cur_node = par_node, par_node = parents[par_node].first) {
 			if (cur_node < storages_amount) continue;
 			int cur_flow = edges[cur_node][par_node]->flow;
-			if (min_flow > cur_flow) min_flow = cur_flow;
+			if (min_flow == -1 || min_flow > cur_flow) min_flow = cur_flow;
 		}
+
+		cout << endl << min_flow; //DEBUG
 
 		edge* new_edge = edges[x_node][y_node];
 		new_edge->is_active = true;
@@ -161,27 +186,31 @@ void solve() {
 			}
 		}
 
+		//DEBUG-start
 		int result = 0;
 		for (int i = 0; i < storages_amount; i++) {
 			for (int j = storages_amount; j < nodes_amount; j++) {
 				result += edges[i][j]->cost * edges[i][j]->flow;
 			}
 		}
-		cout << result << endl;
+		cout << endl << result << endl; 
+		//DEBUG-end
 	}
-	cout << "LOL" << endl;
+
+	cout << "\n\nEnding:" << endl; //DEBUG
 	int result = 0;
 	for (int i = 0; i < storages_amount; i++) {
 		for (int j = storages_amount; j < nodes_amount; j++) {
-			cout << i << ' ' << j-storages_amount << ' ' << edges[i][j]->flow << '\n';
+			cout << edges[i][j]->cost << '|' << i << ' ' << j-storages_amount << ' ' << edges[i][j]->flow << '\n'; //DEBUG
 			result += edges[i][j]->cost * edges[i][j]->flow;
 		}
 	}
-	cout << result << '\n';
-	
-	flush(cout);
-	for (int i = 0; i < markets_amount + storages_amount; ++i) {
-		for (const pair<int, edge*> &p : edges[i]) delete p.second;
+	cout << endl; //DEBUG
+
+	cout << result << endl;
+
+	for (int i = 0; i < markets_amount + storages_amount; i++) {
+		for (int j = storages_amount; j < nodes_amount; j++) delete edges[i][j];
 	}
 	delete[] edges;
 	delete[] storages;
@@ -190,13 +219,18 @@ void solve() {
 	delete[] sums;
 	delete[] parents;
 	delete[] visited;
+
+	return result;
 }
 
 
 int main() {
 	cin.tie(0);
 	ios_base::sync_with_stdio(false);
-	solve();
+	int res = solve();
+	int ans;
+	cin >> ans;
+	cout << (ans == res ? "ok" : "WRONG ANSWER");
 	flush(cout);
 	return 0;
 }
